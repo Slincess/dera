@@ -1,2 +1,0 @@
-C:\Users\kisac\Documents\.test\testone\basicmessagerapp.pdb
-C:\Users\kisac\Documents\.test\testone\basicmessagerapp.exe

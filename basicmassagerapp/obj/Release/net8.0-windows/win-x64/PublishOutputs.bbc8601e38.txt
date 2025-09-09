@@ -1,2 +1,0 @@
-C:\Users\kisac\source\repos\massagerappServer\massagerappServer\builds\testone\basicmassagerapp.pdb
-C:\Users\kisac\source\repos\massagerappServer\massagerappServer\builds\testone\basicmassagerapp.exe
