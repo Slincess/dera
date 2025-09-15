@@ -1,14 +1,15 @@
 #pragma warning disable
-using System.Windows.Forms;
 using System.IO;
 using System.Text.Json;
 using System.IO.Pipes;
 using System.Diagnostics;
 using basicmessagerapp;
 using System.Linq;
-using System.Drawing.Imaging;
 using System.Threading.Tasks;
-
+using SixLabors.ImageSharp;
+using Image = SixLabors.ImageSharp.Image;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 //todo:
 //join more servers
 //change between servers and still have the chats
@@ -56,7 +57,7 @@ namespace basicmessagerapp
                 textBox1.Text = "";
                 if(currentUsedNetwork.serverbtn.FilePanel.Controls.Count != 0)
                 {
-                    currentUsedNetwork.serverbtn.messagelist.Location = new Point
+                    currentUsedNetwork.serverbtn.messagelist.Location = new System.Drawing.Point
                     {
                         Y = currentUsedNetwork.serverbtn.messagelist.Location.Y + currentUsedNetwork.serverbtn.FilePanel.Size.Height,
                         X = currentUsedNetwork.serverbtn.messagelist.Location.X
@@ -93,6 +94,15 @@ namespace basicmessagerapp
         {
             string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\simac";
             string json = File.ReadAllText(Path.Combine(AppDataPath, "SimacJson.json"));
+            try
+            {
+                Info = JsonSerializer.Deserialize<UserInfo>(json) ?? new UserInfo();
+            }
+            catch (JsonException ex)
+            {
+                MessageBox.Show($"Invalid JSON: {ex.Message}");
+                Info = new UserInfo();
+            }
             Info = JsonSerializer.Deserialize<UserInfo>(json) ?? new UserInfo();
             NameBox.Text = Info.LastName;
             NameText.Text = Info.LastName;
@@ -109,13 +119,13 @@ namespace basicmessagerapp
         {
             Button btn = new Button
             {
-                BackColor = Color.FromArgb(64, 65, 68),
+                BackColor = System.Drawing.Color.FromArgb(64, 65, 68),
                 FlatStyle = FlatStyle.Flat,
                 Font = new Font("Segoe UI", 11F),
                 ForeColor = SystemColors.Control,
-                Location = new Point(3, 3),
+                Location = new System.Drawing.Point(3, 3),
                 Name = Server.IP,
-                Size = new Size(54, 36),
+                Size = new System.Drawing.Size(54, 36),
                 TabIndex = 0,
                 Text = Server.IP,
                 UseVisualStyleBackColor = false,
@@ -149,13 +159,13 @@ namespace basicmessagerapp
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left,
                 AutoScroll = true,
-                BackColor = Color.FromArgb(17, 17, 19),
+                BackColor = System.Drawing.Color.FromArgb(17, 17, 19),
                 BorderStyle = BorderStyle.FixedSingle,
                 FlowDirection = FlowDirection.TopDown,
-                Location = new Point(75, 47),
+                Location = new System.Drawing.Point(75, 47),
                 Name = "CCUPANEL",
                 Padding = new Padding(10),
-                Size = new Size(181, 495),
+                Size = new System.Drawing.Size(181, 495),
                 TabIndex = 10,
                 WrapContents = false,
                 Visible = false
@@ -165,13 +175,13 @@ namespace basicmessagerapp
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AutoScroll = true,
-                BackColor = Color.FromArgb(25, 26, 29),
+                BackColor = System.Drawing.Color.FromArgb(25, 26, 29),
                 BorderStyle = BorderStyle.FixedSingle,
                 FlowDirection = FlowDirection.TopDown,
-                Location = new Point(262, 12),
+                Location = new System.Drawing.Point(262, 12),
                 Name = "messagelist",
                 RightToLeft = RightToLeft.No,
-                Size = new Size(683, 562),
+                Size = new System.Drawing.Size(683, 562),
                 TabIndex = 9,
                 WrapContents = false,
                 Visible = false
@@ -180,10 +190,10 @@ namespace basicmessagerapp
             serverbtn.FilePanel = new()
             {
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
-                BackColor = Color.FromArgb(25, 26, 29),
-                Location = new Point(272, 420),
+                BackColor = System.Drawing.Color.FromArgb(25, 26, 29),
+                Location = new System.Drawing.Point(272, 420),
                 Name = "FilePanel",
-                Size = new Size(613, 156),
+                Size = new System.Drawing.Size(613, 156),
                 TabIndex = 18,
                 Visible = false,
             };
@@ -252,13 +262,13 @@ namespace basicmessagerapp
                         Info.ServerIPs.Add(ConnectedServer);
                         servers.Controls.Add(new Button
                         {
-                            BackColor = Color.FromArgb(64, 65, 68),
+                            BackColor = System.Drawing.Color.FromArgb(64, 65, 68),
                             FlatStyle = FlatStyle.Flat,
                             Font = new Font("Segoe UI", 11F),
                             ForeColor = SystemColors.Control,
-                            Location = new Point(3, 3),
+                            Location = new System.Drawing.Point(3, 3),
                             Name = IPbox.Text,
-                            Size = new Size(54, 36),
+                            Size = new System.Drawing.Size(54, 36),
                             TabIndex = 0,
                             Text = IPbox.Text,
                             UseVisualStyleBackColor = false
@@ -283,10 +293,10 @@ namespace basicmessagerapp
                 ConnectionFeedBackText.AutoSize = true;
                 ConnectionFeedBackText.Font = new Font("Segoe UI", 10F);
                 ConnectionFeedBackText.ForeColor = SystemColors.Control;
-                ConnectionFeedBackText.Location = new Point(3, 3);
+                ConnectionFeedBackText.Location = new System.Drawing.Point(3, 3);
                 ConnectionFeedBackText.Margin = new Padding(3, 3, 3, 0);
                 ConnectionFeedBackText.Name = "ConnectionFeedBackText";
-                ConnectionFeedBackText.Size = new Size(45, 19);
+                ConnectionFeedBackText.Size = new System.Drawing.Size(45, 19);
                 ConnectionFeedBackText.TabIndex = 0;
                 ConnectionFeedBackText.Text = Feedback;
                 ConnectionFeedback.Controls.Add(ConnectionFeedBackText);
@@ -303,7 +313,11 @@ namespace basicmessagerapp
                 {
                     if (ip != item.IP && port != item.Port)
                     {
-                        return false;
+                        continue;
+                    }
+                    else
+                    {
+                        return true;
                     }
                 }
                 return true;
@@ -354,7 +368,6 @@ namespace basicmessagerapp
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
             {
                 Stream fileStream = null;
-                //Update - remove parenthesis
                 if (openFileDialog.ShowDialog() == DialogResult.OK && (fileStream = openFileDialog.OpenFile()) != null)
                 {
                     string fileName = openFileDialog.FileName;
@@ -362,44 +375,52 @@ namespace basicmessagerapp
                     {
                         if (!FilePanel.Visible) currentUsedNetwork.serverbtn.FilePanel.Visible = true;
 
-                        currentUsedNetwork.serverbtn.messagelist.Location = new Point
+                        currentUsedNetwork.serverbtn.messagelist.Location = new System.Drawing.Point
                         {
                             Y = currentUsedNetwork.serverbtn.messagelist.Location.Y - currentUsedNetwork.serverbtn.FilePanel.Size.Height,
                             X = currentUsedNetwork.serverbtn.messagelist.Location.X
                         };
 
-                        CreatePicturePreview(Bitmap.FromFile(fileName));
+                        CreatePicturePreview(fileName);
                         
                     }
                 }
             }
         }
 
-        private void CreatePicturePreview(Image Picture)
+        private void CreatePicturePreview(string Picture)
         {
             PictureBox NewPreview = new()
             {
-                Location = new Point(3, 3),
+                Location = new System.Drawing.Point(3, 3),
                 Name = "pictureBox1",
-                Size = new Size(150, 153),
+                Size = new System.Drawing.Size(150, 153),
                 SizeMode = PictureBoxSizeMode.Zoom,
                 TabIndex = 0,
                 TabStop = false,
                 Margin = new Padding(15, 3, 15, 3),
-                BackColor = Color.FromArgb(25, 23, 29),
+                BackColor = System.Drawing.Color.FromArgb(25, 23, 29),
             };
 
-            NewPreview.Image = Picture;
-            Bitmap bitmap = new Bitmap(Picture);
-            using(var ms = new MemoryStream())
-            {
-                Image img;
-                bitmap.Save(ms, ImageFormat.Png);
-                byte[] bytes = ms.ToArray();
+            using var ms = new MemoryStream();
 
-                currentUsedNetwork.serverbtn.Selectedimage = Convert.ToBase64String(bytes);
+            using (var image = Image.Load(Picture))
+            {
+                image.SaveAsPng(ms, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                currentUsedNetwork.serverbtn.Selectedimage = ms.ToArray();
+
+                ms.Position = 0;
+                NewPreview.Image = System.Drawing.Image.FromStream(ms);
             }
             currentUsedNetwork.serverbtn.FilePanel.Controls.Add(NewPreview);
+        }
+
+        public System.Drawing.Image ImageSharpToSystemDrawing(SixLabors.ImageSharp.Image imgSharp)
+        {
+            using var ms = new MemoryStream();
+            imgSharp.Save(ms, new PngEncoder());
+            ms.Position = 0;
+            return System.Drawing.Image.FromStream(ms);
         }
     }
 }
@@ -424,7 +445,7 @@ public class ServerBtns
     public FlowLayoutPanel messagelist;
     public FlowLayoutPanel FilePanel;
     public Form1 main;
-    public string Selectedimage;
+    public byte[] Selectedimage;
     private void ClosePanels()
     {
         CCUPanel.Visible = false;
@@ -445,36 +466,36 @@ public class ServerBtns
         }
 
         FlowLayoutPanel UserPanel = new();
-        UserPanel.BackColor = Color.FromArgb(44, 44, 47);
-        UserPanel.Location = new Point(13, 13);
+        UserPanel.BackColor = System.Drawing.Color.FromArgb(44, 44, 47);
+        UserPanel.Location = new System.Drawing.Point(13, 13);
         UserPanel.Padding = new Padding(10);
-        UserPanel.Size = new Size(157, 45);
+        UserPanel.Size = new System.Drawing.Size(157, 45);
         UserPanel.TabIndex = 0;
 
         Label UserNameLable = new();
         UserNameLable.Font = new Font("Segoe UI", 13F);
         UserNameLable.Text = name;
-        UserNameLable.ForeColor = Color.White;
+        UserNameLable.ForeColor = System.Drawing.Color.White;
         UserPanel.Controls.Add(UserNameLable);
         CCUPanel.Controls.Add(UserPanel);
        
     }
 
-    public void MessageListAdd_img(Image img)
+    public void MessageListAdd_img(System.Drawing.Image imga)
     {
         if (messagelist.InvokeRequired)
         {
-            messagelist.Invoke(new Action(() => MessageListAdd_img(img)));
+            messagelist.Invoke(new Action(() => MessageListAdd_img(imga)));
             return;
         }
 
         PictureBox pictureBox = new()
         {
             Name = "pictureBox1",
-            Size = new Size(420, 210),
+            Size = new System.Drawing.Size(420, 210),
             TabIndex = 19,
             TabStop = false,
-            Image = img,
+            Image = imga,
             SizeMode = PictureBoxSizeMode.Zoom
         };
         messagelist.Controls.Add(pictureBox);
@@ -495,11 +516,11 @@ public class ServerBtns
         message.Font = new Font("Segoe UI", 12F);
         if (text.Contains("SERVER:"))
         {
-            message.ForeColor = Color.FromArgb(111, 168, 168);
+            message.ForeColor = System.Drawing.Color.FromArgb(111, 168, 168);
         }
         else
         {
-            message.ForeColor = Color.White;
+            message.ForeColor = System.Drawing.Color.White;
         }
             messagelist.Controls.Add(message);
             messagelist.ScrollControlIntoView(messagelist.Controls[messagelist.Controls.Count - 1]);
