@@ -1,7 +1,4 @@
 ﻿#pragma warning disable
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,13 +6,10 @@ using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace basicmessagerapp
 {
@@ -99,7 +93,7 @@ namespace basicmessagerapp
             }
         }
 
-        public async Task getmessages()
+        public void getmessages()
         {
 
             while (client.Connected)
@@ -132,19 +126,6 @@ namespace basicmessagerapp
                             {
                                 Debug.WriteLine(item.Message);
                                 serverbtn.MessageList_Add(item.Sender + ": " + item.Message);
-                                try
-                                {
-                                    if(item.PictureKey != null)
-                                    {
-                                        System.Drawing.Image img = Main.ImageSharpToSystemDrawing(await ReceiveImageAsync(stream, item.PictureKey));
-                                        serverbtn.MessageListAdd_img(img);
-                                    }
-                                    
-                                }
-                                catch (Exception e)
-                                {
-                                    serverbtn.MessageList_Add("CLIENT:A eror with image loading (144)");
-                                }
                             }
                         }
                     }
@@ -159,7 +140,7 @@ namespace basicmessagerapp
                     {
                         if (serverbtn.CCUPanel.InvokeRequired)
                         {
-                            serverbtn.CCUPanel.Invoke(() => serverbtn.CCUPanel.Controls.Clear() );
+                            serverbtn.CCUPanel.Invoke(() => serverbtn.CCUPanel.Controls.Clear());
                         }
                         serverbtn.CCUPanel.Controls.Clear();
                         Users CurrentUsers = JsonSerializer.Deserialize<Users>(response_string);
@@ -167,8 +148,8 @@ namespace basicmessagerapp
                         {
                             foreach (var item in CurrentUsers.SV_CCU)
                             {
-                                
-                                    serverbtn.CCUList_add(item.CL_Name);
+
+                                serverbtn.CCUList_add(item.CL_Name);
                             }
                         }
                     }
@@ -183,41 +164,25 @@ namespace basicmessagerapp
                         else
                         {
                             serverbtn.MessageList_Add(response_DataPacks.Sender + ": " + response_DataPacks.Message);
-                            if (response_DataPacks.PictureKey != null )
+
+                            try
                             {
-                                
-                                try
-                                {
-                                    serverbtn.MessageListAdd_img(Main.ImageSharpToSystemDrawing( await ReceiveImageAsync(stream, response_DataPacks.PictureKey)));
-                                }
-                                catch (Exception)
-                                {
-                                    serverbtn.MessageList_Add("CLIENT:A eror with image loading (193)");
-                                }
-                                
+                                byte[] image_byte = Convert.FromBase64String(response_DataPacks.Picture);
+                                Bitmap bitmap;
+                                using var ms = new MemoryStream(image_byte);
+                                bitmap = new Bitmap(ms);
+
+                                Image image;
+                                image = bitmap;
+
+                                serverbtn.MessageListAdd_img(image);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e);
+
                             }
 
-                            /*
-
-                                try
-                                {
-                                    byte[] image_byte = Convert.FromBase64String(response_DataPacks.PictureByte);
-                                    Bitmap bitmap;
-                                    using var ms = new MemoryStream(image_byte);
-                                    bitmap = new Bitmap(ms);
-
-                                System.Drawing.Image image;
-                                    image = bitmap;
-
-                                    serverbtn.MessageListAdd_img(image);
-                            }
-                                catch (Exception e)
-                                {
-                                    Debug.WriteLine(e);
-                                    
-                                }
-                            */
-                            
                         }
                     }
                 }
@@ -232,20 +197,8 @@ namespace basicmessagerapp
                 data.Sender = Main.Info.LastName;
                 data.Message = Message;
 
-                if(Main.currentUsedNetwork.serverbtn.Selectedimage != null)
-                {
-                    try
-                    {
-                        data.PictureByte = Main.currentUsedNetwork.serverbtn.Selectedimage;
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.WriteLine(e + "something wring in send message");
-                    }
-                }
-
                 string dataJson = JsonSerializer.Serialize(data);
-                
+
 
                 try
                 {
@@ -260,42 +213,7 @@ namespace basicmessagerapp
                 }
             }
         }
-
-        public async Task<SixLabors.ImageSharp.Image> ReceiveImageAsync(NetworkStream stream, string key)
-        {
-            serverbtn.MessageList_Add("wating for image");
-            // send request
-            byte[] keyBytes = Encoding.UTF8.GetBytes($"GETIMAGE:{key}");
-            await stream.WriteAsync(keyBytes, 0, keyBytes.Length);
-            serverbtn.MessageList_Add("wating for image2");
-            // read 4-byte length prefix
-            byte[] lenBytes = new byte[4];
-            int read = 0;
-            while (read < 4)
-                read += await stream.ReadAsync(lenBytes, read, 4 - read);
-            serverbtn.MessageList_Add("wating for image3");
-
-            int imageLength = BitConverter.ToInt32(lenBytes, 0);
-            if (imageLength == 0) return null; // image not found
-
-            // read full image data
-            byte[] imageBytes = new byte[imageLength];
-            serverbtn.MessageList_Add("wating for image4");
-            int totalRead = 0;
-            serverbtn.MessageList_Add("wating for image5");
-            while (totalRead < imageLength)
-                totalRead += stream.Read(imageBytes, totalRead, imageLength - totalRead);
-            serverbtn.MessageList_Add("wating for image6");
-
-            // convert to ImageSharp image
-            using var ms = new MemoryStream(imageBytes);
-            Image<Rgba32> img = SixLabors.ImageSharp.Image.Load<Rgba32>(ms);
-            serverbtn.MessageList_Add("image recieved");
-            return img;
-        }
     }
-
-    
 }
 
 public struct NetworkingVariables
@@ -318,10 +236,7 @@ public class DataPacks
 {
     public string? Sender { get; set; }
     public string? Message { get; set; }
-    public byte[]? PictureByte { get; set; }
-    public string? PictureKey { get; set; }
-
-    [JsonIgnore] public System.Drawing.Image image { get; set; }
+    public string? Picture { get; set; }
 }
 
 public class SV_Messages
