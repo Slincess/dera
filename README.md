@@ -7,7 +7,7 @@
 -see who is online.  
 -send pictures.
 # Planed features
--video/voice messages  
+-send video/voice messages  
 -voice call  
 -profiles    
 -profile customization  
