@@ -1,6 +1,7 @@
 # Looks
 
-<img width="1916" height="1020" alt="image" src="https://github.com/user-attachments/assets/f38fcbad-3169-45c5-aa76-9994e71410ce" />
+<img width="1916" height="1020" alt="image" src="<img width="1915" height="1002" alt="{8053324F-2EA7-481C-B1E1-6AB6651B66D3}" src="https://github.com/user-attachments/assets/72acbf01-b836-4a8e-bd7e-e97f8f611418" />
+" />
 
 # features
 -chat load after join.  
