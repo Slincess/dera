@@ -4,10 +4,10 @@
 
 # features
 -chat load after join.  
--see who is online.
-
+-see who is online.  
+-send pictures.
 # Planed features
--send pictures/video/voice messages  
+-video/voice messages  
 -voice call  
 -profiles    
 -profile customization  
