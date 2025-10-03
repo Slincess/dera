@@ -55,15 +55,15 @@ namespace basicmessagerapp
             {
                 currentUsedNetwork.SendMessage(textBox1.Text);
                 textBox1.Text = "";
-                if(currentUsedNetwork.serverbtn.FilePanel.Controls.Count != 0)
+                if(currentUsedNetwork.serverbtn.file_panel.Controls.Count != 0)
                 {
-                    currentUsedNetwork.serverbtn.messagelist.Location = new System.Drawing.Point
+                    currentUsedNetwork.serverbtn.message_list.Location = new System.Drawing.Point
                     {
-                        Y = currentUsedNetwork.serverbtn.messagelist.Location.Y + currentUsedNetwork.serverbtn.FilePanel.Size.Height,
-                        X = currentUsedNetwork.serverbtn.messagelist.Location.X
+                        Y = currentUsedNetwork.serverbtn.message_list.Location.Y + currentUsedNetwork.serverbtn.file_panel.Size.Height,
+                        X = currentUsedNetwork.serverbtn.message_list.Location.X
                     };
-                    currentUsedNetwork.serverbtn.FilePanel.Controls.Clear();
-                    currentUsedNetwork.serverbtn.Selectedimage = null;
+                    currentUsedNetwork.serverbtn.file_panel.Controls.Clear();
+                    currentUsedNetwork.serverbtn.selected_image = null;
                 }
             }
         }
@@ -85,9 +85,24 @@ namespace basicmessagerapp
             }
         }
 
-        private void ServerButtonClicked(object? sender, EventArgs e)
+        private void SaveInfo(UserInfo info)
         {
+            string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\simac";
+            if (Directory.Exists(AppDataPath) && Path.Exists(Path.Combine(AppDataPath, "SimacJson.json")))
+            {
+                string infojson = JsonSerializer.Serialize(info);
 
+                File.WriteAllText(Path.Combine(AppDataPath, "SimacJson.json"), infojson);
+            }
+            else
+            {
+                UserInfo infoNew = new();
+                string newJson = JsonSerializer.Serialize(infoNew);
+                if (!Path.Exists(Path.Combine(AppDataPath, "SimacJson.json")))
+                    Directory.CreateDirectory(AppDataPath);
+
+                File.WriteAllText(@$"{AppDataPath}\SimacJson.json", newJson);
+            }
         }
 
         private void HandleServers()
@@ -133,7 +148,7 @@ namespace basicmessagerapp
             };
             ServerBtns serverbtn = new();
             serverbtn.networking.Main = this;
-            serverbtn.ServerListIndex = serverbtn.ServerListIndex + 1;
+            serverbtn.server_list_index = serverbtn.server_list_index + 1;
             serverbtn.networking.serverbtn = serverbtn;
             try
             {
@@ -155,7 +170,7 @@ namespace basicmessagerapp
             {
                 return false;
             }
-            serverbtn.CCUPanel = new FlowLayoutPanel
+            serverbtn.CCU_panel = new FlowLayoutPanel
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left,
                 AutoScroll = true,
@@ -171,7 +186,7 @@ namespace basicmessagerapp
                 Visible = false
             };
 
-            serverbtn.messagelist = new FlowLayoutPanel
+            serverbtn.message_list = new FlowLayoutPanel
             {
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 AutoScroll = true,
@@ -187,7 +202,7 @@ namespace basicmessagerapp
                 Visible = false
             };
 
-            serverbtn.FilePanel = new()
+            serverbtn.file_panel = new()
             {
                 Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right,
                 BackColor = System.Drawing.Color.FromArgb(25, 26, 29),
@@ -198,9 +213,9 @@ namespace basicmessagerapp
                 Visible = false,
             };
 
-            this.Controls.Add(serverbtn.messagelist);
-            this.Controls.Add(serverbtn.CCUPanel);
-            this.Controls.Add(serverbtn.FilePanel);
+            this.Controls.Add(serverbtn.message_list);
+            this.Controls.Add(serverbtn.CCU_panel);
+            this.Controls.Add(serverbtn.file_panel);
 
             btn.Click += serverbtn.ServerButtonClicked;
             servers.Controls.Add(btn);
@@ -209,31 +224,11 @@ namespace basicmessagerapp
             return true;
         }
 
-        private void SaveInfo(UserInfo info)
-        {
-            string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\simac";
-            if (Directory.Exists(AppDataPath) && Path.Exists(Path.Combine(AppDataPath, "SimacJson.json")))
-            {
-                string infojson = JsonSerializer.Serialize(info);
-
-                File.WriteAllText(Path.Combine(AppDataPath, "SimacJson.json"), infojson);
-            }
-            else
-            {
-                UserInfo infoNew = new();
-                string newJson = JsonSerializer.Serialize(infoNew);
-                if (!Path.Exists(Path.Combine(AppDataPath, "SimacJson.json")))
-                    Directory.CreateDirectory(AppDataPath);
-
-                File.WriteAllText(@$"{AppDataPath}\SimacJson.json", newJson);
-            }
-        }
-
         public void ReturnErrorText(string ErrorText)
         {
             this.Invoke((Delegate)(() =>
             {
-                currentUsedNetwork.serverbtn.MessageList_Add($"CLIENT: {ErrorText}");
+                currentUsedNetwork.serverbtn.MessageListAdd($"CLIENT: {ErrorText}");
             }));
         }
 
@@ -373,14 +368,14 @@ namespace basicmessagerapp
                     string fileName = openFileDialog.FileName;
                     using (fileStream)
                     {
-                        if (!FilePanel.Visible) currentUsedNetwork.serverbtn.FilePanel.Visible = true;
+                        if (!FilePanel.Visible) currentUsedNetwork.serverbtn.file_panel.Visible = true;
 
-                        currentUsedNetwork.serverbtn.messagelist.Location = new System.Drawing.Point
+                        currentUsedNetwork.serverbtn.message_list.Location = new System.Drawing.Point
                         {
-                            Y = currentUsedNetwork.serverbtn.messagelist.Location.Y - currentUsedNetwork.serverbtn.FilePanel.Size.Height,
-                            X = currentUsedNetwork.serverbtn.messagelist.Location.X
+                            Y = currentUsedNetwork.serverbtn.message_list.Location.Y - currentUsedNetwork.serverbtn.file_panel.Size.Height,
+                            X = currentUsedNetwork.serverbtn.message_list.Location.X
                         };
-
+                        currentUsedNetwork.serverbtn.selected_image_name = openFileDialog.FileName;
                         CreatePicturePreview(fileName);
                         
                     }
@@ -407,12 +402,12 @@ namespace basicmessagerapp
             using (var image = Image.Load(Picture))
             {
                 image.SaveAsPng(ms, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
-                currentUsedNetwork.serverbtn.Selectedimage = ms.ToArray();
-
+                currentUsedNetwork.serverbtn.selected_image = ms.ToArray();
                 ms.Position = 0;
                 NewPreview.Image = System.Drawing.Image.FromStream(ms);
+                //here Upload before sending
             }
-            currentUsedNetwork.serverbtn.FilePanel.Controls.Add(NewPreview);
+            currentUsedNetwork.serverbtn.file_panel.Controls.Add(NewPreview);
         }
 
         public System.Drawing.Image ImageSharpToSystemDrawing(SixLabors.ImageSharp.Image imgSharp)
@@ -439,29 +434,30 @@ public class Server
 
 public class ServerBtns
 {
-    public int ServerListIndex;
+    public int server_list_index;
     public Networking networking = new();
-    public FlowLayoutPanel CCUPanel;
-    public FlowLayoutPanel messagelist;
-    public FlowLayoutPanel FilePanel;
+    public FlowLayoutPanel CCU_panel;
+    public FlowLayoutPanel message_list;
+    public FlowLayoutPanel file_panel;
     public Form1 main;
-    public byte[] Selectedimage;
+    public byte[] selected_image;
+    public string selected_image_name;
     private void ClosePanels()
     {
-        CCUPanel.Visible = false;
-        messagelist.Visible = false;
+        CCU_panel.Visible = false;
+        message_list.Visible = false;
     }
     private void OpenPanels()
     {
-        CCUPanel.Visible = true;
-        messagelist.Visible = true;
-        if(FilePanel.Controls.Count > 0) { FilePanel.Visible = true; }
+        CCU_panel.Visible = true;
+        message_list.Visible = true;
+        if(file_panel.Controls.Count > 0) { file_panel.Visible = true; }
     }
-    public void CCUList_add(string name)
+    public void CCUListAdd(string name)
     {
-        if (CCUPanel.InvokeRequired)
+        if (CCU_panel.InvokeRequired)
         {
-            CCUPanel.Invoke(() => CCUList_add(name));
+            CCU_panel.Invoke(() => CCUListAdd(name));
             return;
         }
 
@@ -477,15 +473,15 @@ public class ServerBtns
         UserNameLable.Text = name;
         UserNameLable.ForeColor = System.Drawing.Color.White;
         UserPanel.Controls.Add(UserNameLable);
-        CCUPanel.Controls.Add(UserPanel);
+        CCU_panel.Controls.Add(UserPanel);
        
     }
 
-    public void MessageListAdd_img(System.Drawing.Image imga)
+    public void MessageListAdd_Img(System.Drawing.Image imga)
     {
-        if (messagelist.InvokeRequired)
+        if (message_list.InvokeRequired)
         {
-            messagelist.Invoke(new Action(() => MessageListAdd_img(imga)));
+            message_list.Invoke(new Action(() => MessageListAdd_Img(imga)));
             return;
         }
 
@@ -498,15 +494,15 @@ public class ServerBtns
             Image = imga,
             SizeMode = PictureBoxSizeMode.Zoom
         };
-        messagelist.Controls.Add(pictureBox);
+        message_list.Controls.Add(pictureBox);
     }
 
-    public void MessageList_Add(string text)
+    public void MessageListAdd(string text)
     {
 
-        if (messagelist.InvokeRequired)
+        if (message_list.InvokeRequired)
         {
-            messagelist.Invoke(new Action(() => MessageList_Add(text)));
+            message_list.Invoke(new Action(() => MessageListAdd(text)));
             return;
         }
 
@@ -522,8 +518,8 @@ public class ServerBtns
         {
             message.ForeColor = System.Drawing.Color.White;
         }
-            messagelist.Controls.Add(message);
-            messagelist.ScrollControlIntoView(messagelist.Controls[messagelist.Controls.Count - 1]);
+            message_list.Controls.Add(message);
+            message_list.ScrollControlIntoView(message_list.Controls[message_list.Controls.Count - 1]);
     }
     public void ServerButtonClicked(object? sender, EventArgs e)
     {

@@ -6,10 +6,13 @@ using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace basicmessagerapp
 {
@@ -31,7 +34,7 @@ namespace basicmessagerapp
         private int messagesCount = 0;
 
         public ServerBtns serverbtn;
-
+        private static readonly HttpClient client_http = new HttpClient();
         public async Task<bool> Connect(string ip, int port)
         {
             try
@@ -80,7 +83,6 @@ namespace basicmessagerapp
             }
         }
 
-
         private bool NameCheck()
         {
             if (String.IsNullOrWhiteSpace(Main.Info.LastName) || Main.Info.LastName == "ADMIN")
@@ -93,7 +95,7 @@ namespace basicmessagerapp
             }
         }
 
-        public void getmessages()
+        public async Task getmessages()
         {
 
             while (client.Connected)
@@ -117,7 +119,7 @@ namespace basicmessagerapp
                 {
                     messagesCount++;
                     SV_Messages Sv_messages = JsonSerializer.Deserialize<SV_Messages>(response_string);
-                    Debug.Write(response_string);
+                    Debug.Write(response);
                     try
                     {
                         if (Sv_messages.SV_allMessages != null)
@@ -125,7 +127,21 @@ namespace basicmessagerapp
                             foreach (var item in Sv_messages.SV_allMessages)
                             {
                                 Debug.WriteLine(item.Message);
-                                serverbtn.MessageList_Add(item.Sender + ": " + item.Message);
+                                serverbtn.MessageListAdd(item.Sender + ": " + item.Message);
+                                if(item.Picture != null)
+                                {
+                                    try
+                                    {
+                                        string picturePath = await GetPicture(item.Picture, Path.Combine(@"D:\\wa\", item.Picture + ".png")); // returns path on disk
+                                        Debug.WriteLine("there is pictures");
+                                        System.Drawing.Image img = System.Drawing.Image.FromFile(picturePath);
+                                        serverbtn.MessageListAdd_Img(img);
+                                    }
+                                    catch(Exception e)
+                                    {
+                                        Debug.WriteLine(e);
+                                    }
+                                }
                             }
                         }
                     }
@@ -138,18 +154,18 @@ namespace basicmessagerapp
                 {
                     if (response_string.Contains("SV_CCU"))
                     {
-                        if (serverbtn.CCUPanel.InvokeRequired)
+                        if (serverbtn.CCU_panel.InvokeRequired)
                         {
-                            serverbtn.CCUPanel.Invoke(() => serverbtn.CCUPanel.Controls.Clear());
+                            serverbtn.CCU_panel.Invoke(() => serverbtn.CCU_panel.Controls.Clear());
                         }
-                        serverbtn.CCUPanel.Controls.Clear();
+                        serverbtn.CCU_panel.Controls.Clear();
                         Users CurrentUsers = JsonSerializer.Deserialize<Users>(response_string);
                         if (CurrentUsers.SV_CCU != null)
                         {
                             foreach (var item in CurrentUsers.SV_CCU)
                             {
 
-                                serverbtn.CCUList_add(item.CL_Name);
+                                serverbtn.CCUListAdd(item.CL_Name);
                             }
                         }
                     }
@@ -163,24 +179,14 @@ namespace basicmessagerapp
                         }
                         else
                         {
-                            serverbtn.MessageList_Add(response_DataPacks.Sender + ": " + response_DataPacks.Message);
-
-                            try
+                            serverbtn.MessageListAdd(response_DataPacks.Sender + ": " + response_DataPacks.Message);
+                            
+                            if(response_DataPacks.Picture != null)
                             {
-                                byte[] image_byte = Convert.FromBase64String(response_DataPacks.Picture);
-                                Bitmap bitmap;
-                                using var ms = new MemoryStream(image_byte);
-                                bitmap = new Bitmap(ms);
-
-                                Image image;
-                                image = bitmap;
-
-                                serverbtn.MessageListAdd_img(image);
-                            }
-                            catch (Exception e)
-                            {
-                                Debug.WriteLine(e);
-
+                                string picturePath = await GetPicture(response_DataPacks.Picture, Path.Combine(@"D:\\wa\" , response_DataPacks.Picture + ".png")); // returns path on disk
+                                Debug.WriteLine("there is pictures");
+                                System.Drawing.Image img = System.Drawing.Image.FromFile(picturePath);
+                                serverbtn.MessageListAdd_Img(img);
                             }
 
                         }
@@ -189,7 +195,7 @@ namespace basicmessagerapp
             }
         }
 
-        public void SendMessage(string Message)
+        public async Task SendMessage(string Message)
         {
             if (!String.IsNullOrWhiteSpace(Main.Info.LastName))
             {
@@ -197,21 +203,97 @@ namespace basicmessagerapp
                 data.Sender = Main.Info.LastName;
                 data.Message = Message;
 
-                string dataJson = JsonSerializer.Serialize(data);
 
+                if(Main.currentUsedNetwork.serverbtn.selected_image != null)
+                {
+                    try
+                    {
+                        string key = await UploadPicture();
+                        if (key != null)
+                        {
+                            data.Picture = key;
+                        }
+
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e);
+                    }
+                }
+
+                string dataJson = JsonSerializer.Serialize(data);
 
                 try
                 {
                     message = Encoding.UTF8.GetBytes(dataJson);
                     stream.Write(message, 0, message.Length);
-                    Debug.WriteLine(Main.currentUsedNetwork.serverbtn.Selectedimage);
+                    Debug.WriteLine(Main.currentUsedNetwork.serverbtn.selected_image);
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine(e);
+                    Debug.WriteLine(e + "problem in sending messages");
                     disconnect();
                 }
             }
+        }
+
+        async Task<string> UploadPicture()
+        {
+            using (var form = new MultipartFormDataContent())
+            {
+                var png_content = new ByteArrayContent(Main.currentUsedNetwork.serverbtn.selected_image);
+                png_content.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
+                form.Add(png_content, "png", Main.currentUsedNetwork.serverbtn.selected_image_name);
+                var response = await client_http.PostAsync("http://192.168.178.20:5001/api/UploadImage", form);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    string json = await response.Content.ReadAsStringAsync();
+                    string key = JsonSerializer.Deserialize<string>(json);
+                    Debug.WriteLine("Student data uploaded successfully!");
+                    return key;
+                }
+                else
+                {
+                    Debug.WriteLine($"Failed to upload data: {response.StatusCode}");
+                    return null;
+                }
+            }
+        }
+
+        public async Task<string> GetPicture(string key, string savePath)
+        {
+            var form = new MultipartFormDataContent();
+            form.Add(new StringContent(key), "key"); // send key as form field
+
+            try
+            {
+                var response = await client_http.PostAsync("http://192.168.178.20:5001/api/GetImage", form);
+                try
+                {
+                    if (response.IsSuccessStatusCode)
+                    {
+                        byte[] imageBytes = await response.Content.ReadAsByteArrayAsync();
+                        await File.WriteAllBytesAsync(savePath, imageBytes);
+                        return savePath;
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"Failed to get image: {response.StatusCode}");
+                        return null;
+                    }
+                }
+                catch (Exception a)
+                {
+                    Debug.WriteLine(a + " there is a problem with proceccing");
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e + " there is problem with response");
+            }
+            return savePath;
+            Debug.WriteLine("asking for photos");
         }
     }
 }
