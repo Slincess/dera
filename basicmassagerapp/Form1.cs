@@ -143,22 +143,45 @@ namespace basicmessagerapp
 
         private async void TryConnecting(Object source, ElapsedEventArgs e)
         {
-            if(UnConnectedServers.Count  == 0) { return; }
-            foreach (var i in UnConnectedServers)
+            if (UnConnectedServers.Count != 0)
             {
-                try
+                foreach (var i in UnConnectedServers.ToList())
                 {
-                    bool success = await i.btn.networking.Connect(i.server.IP, i.server.Port);
-                    if (success) { UnConnectedServers.Remove(i); this.Invoke(() => i.btn.btn.Enabled = true); }
+                    try
+                    {
+                        Debug.WriteLine("trying to reconnect");
+                        bool success = await i.btn.networking.Connect(i.server.IP, i.server.Port);
+                        if (success) { UnConnectedServers.Remove(i); this.Invoke(() => i.btn.btn.Enabled = true); Debug.WriteLine("suc"); break; }
+                        else { Debug.WriteLine("failed"); }
+
+                    }
+                    catch (Exception a)
+                    {
+                        Debug.WriteLine(a + "tryConnecting");
+                    }
 
                 }
-                catch (Exception)
-                {
-
-                    throw;
-                }
-                
             }
+            else {return; }
+        }
+
+        public void HandleConnectionLostServer(ServerBtns btn, Server server)
+        {
+            this.Invoke(() =>
+            {
+                btn.networking.client = null;
+                btn.btn.Enabled = false;
+                Debug.WriteLine("Btn disabled");
+                btn.ClosePanels();
+                Debug.WriteLine("Btn panel closed");
+                UnConnectedServer NewUCS = new UnConnectedServer();
+                NewUCS.server = server;
+                NewUCS.btn = btn;
+                UnConnectedServers.Add(NewUCS);
+                Debug.WriteLine("added to list");
+                HandleUnConnectedServers();
+            });
+
         }
 
         private async Task<bool> CreateServer(Server Server)
@@ -369,10 +392,12 @@ namespace basicmessagerapp
                 return false;
             }
         }
+
         public void ConnectionFeedBackClear()
         {
             ConnectionFeedback.Controls.Clear();
         }
+
         private void NameBox_TextChanged(object sender, EventArgs e)
         {
             Info.LastName = NameBox.Text;
@@ -493,12 +518,12 @@ public class ServerBtns
     public string selected_image_name;
     public Button btn;
 
-    private void ClosePanels()
+    public void ClosePanels()
     {
         CCU_panel.Visible = false;
         message_list.Visible = false;
     }
-    private void OpenPanels()
+    public void OpenPanels()
     {
         CCU_panel.Visible = true;
         message_list.Visible = true;

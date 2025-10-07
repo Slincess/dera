@@ -20,7 +20,7 @@ namespace basicmessagerapp
     {
         public Form1 Main;
 
-        public TcpClient client { get; private set; }
+        public TcpClient? client;
         private NetworkStream stream;
         CancellationTokenSource cts;
 
@@ -35,6 +35,8 @@ namespace basicmessagerapp
 
         public ServerBtns serverbtn;
         private static readonly HttpClient client_http = new HttpClient();
+
+        private Server ThisServer = new();
         public async Task<bool> Connect(string ip, int port)
         {
             try
@@ -46,6 +48,8 @@ namespace basicmessagerapp
                 cts = new CancellationTokenSource();
                 response = Task.Run(() => getmessages());
                 stream.Write(name, 0, name.Length);
+                ThisServer.IP = ip;
+                ThisServer.Port = port;
                 return true;
             }
             catch
@@ -58,6 +62,7 @@ namespace basicmessagerapp
         {
             if (IsClientConnected && stream != null)
             {
+
                 var disconnectedSignal = new DataPacks
                 {
                     Sender = "ADMIN",
@@ -106,13 +111,14 @@ namespace basicmessagerapp
                 {
                     response_int = stream.Read(response_byte);
                 }
-                catch (Exception)
+                catch
                 {
-                    disconnect();
                 }
                 string response_string = Encoding.UTF8.GetString(response_byte, 0, response_int);
                 if (response_int == 0)
                 {
+                    Main.HandleConnectionLostServer(serverbtn, ThisServer);
+                    client = null;
                     break;
                 }
                 if (messagesCount == 0)
