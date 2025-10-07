@@ -412,7 +412,7 @@ namespace basicmessagerapp
 
         private void ProfileEdit_Click(object sender, EventArgs e)
         {
-            ProfilePanel.Visible = true;
+            ProfilePanel.Visible = !ProfilePanel.Visible;
             ServerConnectPanel.Visible = false;
         }
 
@@ -426,7 +426,7 @@ namespace basicmessagerapp
         private void AddServer_Click(object sender, EventArgs e)
         {
             ProfilePanel.Visible = false;
-            ServerConnectPanel.Visible = true;
+            ServerConnectPanel.Visible = !ServerConnectPanel.Visible;
         }
 
         private void ImageSelectBrn_Click(object sender, EventArgs e)
