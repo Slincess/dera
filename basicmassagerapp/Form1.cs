@@ -10,11 +10,9 @@ using SixLabors.ImageSharp;
 using Image = SixLabors.ImageSharp.Image;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
-//todo:
-//join more servers
-//change between servers and still have the chats
-//SERVER: send only last 30 messages
-//collect last 30 message in catch or maybe create panel for every server.
+using System.Diagnostics.Eventing.Reader;
+using System.Collections;
+using System.Timers;
 namespace basicmessagerapp
 {
     public partial class Form1 : Form
@@ -23,6 +21,7 @@ namespace basicmessagerapp
         NetworkingVariables Networkingvariables;
         public Networking currentUsedNetwork;
         public List<ServerBtns> Servers = new();
+        private List<UnConnectedServer> UnConnectedServers = new();
 
         public UserInfo Info = new();
 
@@ -35,6 +34,7 @@ namespace basicmessagerapp
                 item.main = this;
             }
         }
+
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
@@ -128,6 +128,37 @@ namespace basicmessagerapp
                    _ = CreateServer(item);
                 }
             }
+
+            HandleUnConnectedServers();
+            
+        }
+
+        private void HandleUnConnectedServers()
+        {
+            var aTimer = new System.Timers.Timer(2000);
+            aTimer.Elapsed += TryConnecting;
+            aTimer.AutoReset = true;
+            aTimer.Enabled = true;
+        }
+
+        private async void TryConnecting(Object source, ElapsedEventArgs e)
+        {
+            if(UnConnectedServers.Count  == 0) { return; }
+            foreach (var i in UnConnectedServers)
+            {
+                try
+                {
+                    bool success = await i.btn.networking.Connect(i.server.IP, i.server.Port);
+                    if (success) { UnConnectedServers.Remove(i); this.Invoke(() => i.btn.btn.Enabled = true); }
+
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+                
+            }
         }
 
         private async Task<bool> CreateServer(Server Server)
@@ -150,6 +181,7 @@ namespace basicmessagerapp
             serverbtn.networking.Main = this;
             serverbtn.server_list_index = serverbtn.server_list_index + 1;
             serverbtn.networking.serverbtn = serverbtn;
+            serverbtn.btn = btn;
             try
             {
                 _ = Task.Run(async () =>
@@ -157,11 +189,25 @@ namespace basicmessagerapp
                     try
                     {
                         bool success = await serverbtn.networking.Connect(Server.IP, Server.Port);
-                        if (success) { this.Invoke(() => btn.Enabled = true); };
+                        if (success)
+                        { 
+                            this.Invoke(() => btn.Enabled = true); 
+                        }
+                        else 
+                        {
+                            UnConnectedServer newUCS = new UnConnectedServer();
+                            newUCS.server = Server;
+                            newUCS.btn = serverbtn;
+                            UnConnectedServers.Add(newUCS); 
+                        }
+                        
                     }
                     catch
                     {
-
+                        UnConnectedServer newUCS = new UnConnectedServer();
+                        newUCS.server = Server;
+                        newUCS.btn = serverbtn;
+                        UnConnectedServers.Add(newUCS);
                         throw;
                     }
                 });
@@ -323,13 +369,10 @@ namespace basicmessagerapp
                 return false;
             }
         }
-
-
         public void ConnectionFeedBackClear()
         {
             ConnectionFeedback.Controls.Clear();
         }
-
         private void NameBox_TextChanged(object sender, EventArgs e)
         {
             Info.LastName = NameBox.Text;
@@ -420,6 +463,12 @@ namespace basicmessagerapp
     }
 }
 
+public struct UnConnectedServer 
+{
+    public Server server;
+    public ServerBtns btn;
+};
+
 public class UserInfo
 {
     public List<Server> ServerIPs { get; set; } = new();
@@ -442,6 +491,8 @@ public class ServerBtns
     public Form1 main;
     public byte[] selected_image;
     public string selected_image_name;
+    public Button btn;
+
     private void ClosePanels()
     {
         CCU_panel.Visible = false;
@@ -531,3 +582,12 @@ public class ServerBtns
         OpenPanels();
     }
 }
+
+
+///I dont really know if anyone gonna see this but I feel like I wanna write this here and maybe someone tells me
+///what to do.
+///So there is a girl called sara, we have been talking for a while now. I really like her and I think she likes me 
+///back and thats good but the problem is It seems like I need to leave the country im living right now, I dont know
+///how to tell this do I go cold and dont hurt her? or do I tell her and she decides if she wanna go throught the 
+///though time with me. I dont know I really dont know tmrw (11.5) it should be clear if I have to leave or not
+///and I feel so guilty. yea thats it if you find this and wanna give an advice pls contact me discord: slincess
