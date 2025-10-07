@@ -145,21 +145,27 @@ namespace basicmessagerapp
         {
             if (UnConnectedServers.Count != 0)
             {
-                foreach (var i in UnConnectedServers.ToList())
+                try
                 {
-                    try
+                    foreach (var i in UnConnectedServers)
                     {
-                        Debug.WriteLine("trying to reconnect");
-                        bool success = await i.btn.networking.Connect(i.server.IP, i.server.Port);
-                        if (success) { UnConnectedServers.Remove(i); this.Invoke(() => i.btn.btn.Enabled = true); Debug.WriteLine("suc"); break; }
-                        else { Debug.WriteLine("failed"); }
+                        try
+                        {
+                            Debug.WriteLine("trying to reconnect");
+                            bool success = await i.btn.networking.Connect(i.server.IP, i.server.Port);
+                            if (success) { UnConnectedServers.Remove(i); this.Invoke(() => i.btn.btn.Enabled = true); Debug.WriteLine("suc"); break; }
+                            else { Debug.WriteLine("failed"); }
+
+                        }
+                        catch (Exception a)
+                        {
+                            Debug.WriteLine(a + "tryConnecting");
+                        }
 
                     }
-                    catch (Exception a)
-                    {
-                        Debug.WriteLine(a + "tryConnecting");
-                    }
-
+                }
+                catch
+                {
                 }
             }
             else {return; }
