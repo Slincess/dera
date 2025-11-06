@@ -14,9 +14,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Styling;
 using Avalonia.Threading;
-using simac;
+using dera;
 
-namespace simac
+namespace dera
 {
     public class Networking
     {

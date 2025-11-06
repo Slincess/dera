@@ -1,7 +1,7 @@
 ﻿using System;
 using Avalonia;
 
-namespace simac
+namespace dera
 {
     internal class Program
     {

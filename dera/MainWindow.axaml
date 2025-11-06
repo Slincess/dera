@@ -5,7 +5,7 @@
         mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080" 
         x:Class="simac.MainWindow"
 		Background="#111113"
-        Title="simac"
+        Title="dera"
 		ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="30"

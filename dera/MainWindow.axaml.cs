@@ -16,9 +16,9 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 
-using simac;
+using dera;
 
-namespace simac
+namespace dera
 {
     public partial class MainWindow : Window
     {
