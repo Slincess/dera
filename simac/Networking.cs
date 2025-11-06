@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -11,14 +10,17 @@ using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+using Avalonia.Styling;
+using Avalonia.Threading;
+using simac;
 
-namespace basicmessagerapp
+namespace simac
 {
     public class Networking
     {
-        public Form1 Main;
+        public MainWindow Main;
 
         public TcpClient? client;
         private NetworkStream stream;
@@ -133,21 +135,22 @@ namespace basicmessagerapp
                             foreach (var item in Sv_messages.SV_allMessages)
                             {
                                 Debug.WriteLine(item.Message);
-                                serverbtn.MessageListAdd(item.Sender + ": " + item.Message);
-                                if(item.Picture != null)
+
+                                if (item.Picture == null) { serverbtn.MessageAdd(item); }
+                                else
                                 {
                                     try
                                     {
                                         string picturePath = await GetPicture(item.Picture, Path.Combine(@"D:\\wa\", item.Picture + ".png")); // returns path on disk
                                         Debug.WriteLine("there is pictures");
-                                        System.Drawing.Image img = System.Drawing.Image.FromFile(picturePath);
-                                        serverbtn.MessageListAdd_Img(img);
+                                        serverbtn.MessageAdd(item,picturePath);
                                     }
-                                    catch(Exception e)
+                                    catch (Exception e)
                                     {
                                         Debug.WriteLine(e);
                                     }
                                 }
+
                             }
                         }
                     }
@@ -160,11 +163,13 @@ namespace basicmessagerapp
                 {
                     if (response_string.Contains("SV_CCU"))
                     {
+                        /*
                         if (serverbtn.CCU_panel.InvokeRequired)
                         {
                             serverbtn.CCU_panel.Invoke(() => serverbtn.CCU_panel.Controls.Clear());
                         }
-                        serverbtn.CCU_panel.Controls.Clear();
+                        */
+                        Main.CCU_panel.Children.Clear();
                         Users CurrentUsers = JsonSerializer.Deserialize<Users>(response_string);
                         if (CurrentUsers.SV_CCU != null)
                         {
@@ -185,14 +190,13 @@ namespace basicmessagerapp
                         }
                         else
                         {
-                            serverbtn.MessageListAdd(response_DataPacks.Sender + ": " + response_DataPacks.Message);
-                            
-                            if(response_DataPacks.Picture != null)
+                           
+                            if(response_DataPacks.Picture != null) { serverbtn.MessageAdd(response_DataPacks); }
+                            else
                             {
-                                string picturePath = await GetPicture(response_DataPacks.Picture, Path.Combine(@"D:\\wa\" , response_DataPacks.Picture + ".png")); // returns path on disk
+                                string picturePath = await GetPicture(response_DataPacks.Picture, Path.Combine(@"D:\\wa\", response_DataPacks.Picture + ".png")); // returns path on disk
                                 Debug.WriteLine("there is pictures");
-                                System.Drawing.Image img = System.Drawing.Image.FromFile(picturePath);
-                                serverbtn.MessageListAdd_Img(img);
+                                serverbtn.MessageAdd(response_DataPacks,picturePath);
                             }
 
                         }
@@ -210,7 +214,7 @@ namespace basicmessagerapp
                 data.Message = Message;
 
 
-                if(Main.currentUsedNetwork.serverbtn.selected_image != null)
+                if (Main.currentUsedNetwork.serverbtn.selected_image != null)
                 {
                     try
                     {
@@ -299,35 +303,6 @@ namespace basicmessagerapp
                 Debug.WriteLine(e + " there is problem with response");
             }
             return savePath;
-            Debug.WriteLine("asking for photos");
         }
     }
-}
-
-public struct NetworkingVariables
-{
-    public UserInfo info;
-    public TcpClient client;
-    public NetworkStream? stream;
-}
-
-public class CL_UserPack
-{
-    public int CL_ID { get; set; }
-    public string? CL_Name { get; set; }
-}
-public class Users
-{
-    public List<CL_UserPack> SV_CCU { get; set; }
-}
-public class DataPacks
-{
-    public string? Sender { get; set; }
-    public string? Message { get; set; }
-    public string? Picture { get; set; }
-}
-
-public class SV_Messages
-{
-    public List<DataPacks> SV_allMessages { get; set; }
 }

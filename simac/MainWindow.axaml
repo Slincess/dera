@@ -1,0 +1,229 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080" 
+        x:Class="simac.MainWindow"
+		Background="#111113"
+        Title="simac"
+		ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="30"
+        TransparencyLevelHint="AcrylicBlur"
+		>
+
+	<Grid Name="main_grid" RowDefinitions="auto,*" ColumnDefinitions="auto,auto,*">
+
+		
+		<Border Grid.Row="0" 
+				Grid.Column="2" 
+				VerticalAlignment="Top" 
+				Background="Transparent"
+				PointerPressed="TitleBar_PointerPressed"
+				>
+            <DockPanel >
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="_" Width="40" Background="Transparent" Foreground="White"/>
+                    <Button Content="□" Width="40" Background="Transparent" Foreground="White"/>
+                    <Button Content="X" Width="40" Background="Transparent" Foreground="White"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+		<!--channel ccu filepanel -->
+		<Border Grid.Row="1" Grid.Column="3" BorderBrush="#2b2b2d" 
+			BorderThickness="2" 
+			CornerRadius="10" 
+			Background="#191a1d"
+			Margin="0,0,0,-2"
+			IsVisible="True"
+			>
+			<Grid Margin="0,10,-2,0" HorizontalAlignment="Stretch" ColumnDefinitions="auto, *, auto">
+				<!--channel panel-->
+				
+				<Grid Grid.Column="0" Background="#141519" Width="180" Margin="0,0,0,0">
+					<Border BorderBrush="#2b2b2d" BorderThickness="0" Width="170" CornerRadius="1">
+						<ScrollViewer>
+							<StackPanel Name="channel_name" Orientation="Vertical">
+								<TextBlock Foreground="White" Margin="35,10,0,0">{server name}</TextBlock>
+								<Button
+										Width="159"
+										Height="38"
+										Margin="4,10,0,0"
+										Background="#404144">
+									<TextBlock Foreground="White" TextWrapping="Wrap" >Channel</TextBlock>
+								</Button>
+							</StackPanel>
+						</ScrollViewer>
+					</Border>
+				</Grid>
+		
+				<!--Messaging panel-->
+				<Grid Grid.Column="1" RowDefinitions="*,auto" Background="#191a1d" Margin="-3,0,0,0" >
+					<Border Grid.Row="0"
+							BorderBrush="#2b2b2d" BorderThickness="2" HorizontalAlignment="Stretch"
+							VerticalAlignment="Stretch" CornerRadius="1">
+						<ScrollViewer>
+							<StackPanel Name="messages_panel"
+							Orientation="Vertical">
+								<TextBlock FontSize="15" Foreground="#6FA8A8">hello my name is sigma</TextBlock>
+								<Image
+								 Height="200"
+								 Width= "450"
+								 Stretch="Uniform"
+								></Image>
+							</StackPanel>
+						</ScrollViewer>
+					</Border>
+					<Border Grid.Row="1" 
+							BorderBrush="#2b2b2d"
+							BorderThickness="2"
+							CornerRadius="10"
+							Height="200"
+							VerticalAlignment="Bottom"
+							HorizontalAlignment="Stretch"
+							Margin="0,10,0,84"
+							IsVisible="False"
+							>
+						<StackPanel Name="file_panel" Orientation="Horizontal">
+						</StackPanel>
+					</Border>
+
+					<Border BorderBrush="#2b2b2d" 
+							BorderThickness="2" 
+							CornerRadius="1" 
+							Height="45"
+							VerticalAlignment="Bottom"
+							HorizontalAlignment="Stretch"
+							Margin="0,0,0,15"
+							Grid.Row="0"
+							>
+						<Grid ColumnDefinitions="auto,*" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+						<TextBox Grid.Column="1" 
+								Name="message_text_box" 
+								Watermark="message" 
+								Height="45" 
+								Foreground="white"
+								Background="#2b2b2d"
+								VerticalAlignment="Center"
+								
+								/>
+					<Button Grid.Column="0" Width="40" Height="40" Background="#2b2b2d" HorizontalAlignment="Right">
+						<TextBlock Foreground="white" FontSize="25" HorizontalAlignment="Center" VerticalAlignment="Center">
+						+
+						</TextBlock>
+					</Button>
+				</Grid>
+			</Border>
+				</Grid>
+
+				<!--CCU panel-->
+				<Grid Grid.Column="2" Grid.Row="0" Background="#141519" Width="200" Margin="-3,0,0,0">
+					<Border BorderBrush="#2b2b2d" BorderThickness="2" Width="200" CornerRadius="1" >
+						<ScrollViewer>
+							<StackPanel Name="CCU_panel" Orientation="Vertical">
+								<TextBlock Foreground="White" Margin="35,10,0,0">{a name}</TextBlock>
+								<Button
+										Width="159"
+										Height="38"
+										Margin="4,10,0,0"
+										Background="#404144">
+									<TextBlock Foreground="White" TextWrapping="Wrap" >Channel</TextBlock>
+								</Button>
+							</StackPanel>
+						</ScrollViewer>
+					</Border>
+				</Grid>
+			</Grid>
+		</Border>
+
+
+		<!--Server list-->
+		<Grid Grid.Row="1" Grid.Column="0" Background="#111113" Width="100" >
+			
+				<ScrollViewer>
+					<StackPanel Name="server_list" Orientation="Vertical">
+						<TextBlock Foreground="White" Margin="15,10,0,0" >Server list</TextBlock>
+						<Button Name="server_add_button" 
+								Width="60" 
+								Height="58" 
+								Margin="19,10,0,0" 
+								Background="#404144">
+							<TextBlock Foreground="White" TextWrapping="Wrap" >Add server</TextBlock>
+						</Button>
+					</StackPanel>
+				</ScrollViewer>
+		
+		</Grid>
+
+		<!--profile-->
+		<Grid Grid.Row="1" Name="profile" Grid.Column="2" Margin="-92,0,0,10" Width="250" Height="50" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+			<Border BorderBrush="#2b2b2d" Background="#2b2b2d" BorderThickness="2" Width="250" Height="50" CornerRadius="4" >
+				<Grid ColumnDefinitions="*,auto">
+					<TextBlock 
+					Grid.Column="0"
+					Name="user_name_text"
+					Foreground="white"
+					FontSize="18"
+					VerticalAlignment="Center"
+					HorizontalAlignment="Left"
+					Margin="10,0,0,0"
+					TextWrapping="Wrap"
+					>
+						anonym
+					</TextBlock>
+					<Button 
+					Grid.Column="1"
+					Foreground="white" 
+					Background="#404144" 
+					Width="50"
+					Height="40"
+					Margin="10,0,10,0"
+					HorizontalAlignment="Right"
+					Name="profile_edit_button"
+					>
+						<TextBlock VerticalAlignment="Center" HorizontalAlignment="Center">
+							edit
+						</TextBlock>
+					</Button>
+				</Grid>
+			</Border>
+		</Grid>
+
+		<Grid Grid.Row="1" Name="profile_edit_panel" IsVisible="False" Grid.Column="2" Margin="-92,0,0,70" Width="250" Height="150" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+			<Border  BorderBrush="#2b2b2d" Background="#2b2b2d" BorderThickness="2" Width="250" Height="150" CornerRadius="4">
+				<StackPanel Orientation="Vertical">
+					<TextBox Name="name_text_box" Width="200" Height="10" Margin="0,20,0,0" ></TextBox>
+					<Button Name="profile_save_button" Width="120" Height="40" Margin="65,20,0,0">
+						<TextBlock Foreground="white" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+						Save
+						</TextBlock>
+					</Button>
+				</StackPanel>
+			</Border>
+		</Grid>
+
+		<Grid Grid.Row="1" Name="server_adding_panel" IsVisible="False" Grid.Column="2" Margin="-92,0,0,70" Width="250" Height="150" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+			<Border  BorderBrush="#2b2b2d" Background="#2b2b2d" BorderThickness="2" Width="250" Height="150" CornerRadius="4">
+				<StackPanel Orientation="Vertical">
+					<TextBox Name="IP_box" Width="200" Height="10" Margin="0,10,0,0" ></TextBox>
+					<TextBox Name="PORT_box" Width="200" Height="10" Margin="0,15,0,0" ></TextBox>
+					<Button Name="connect_button" Width="120" Height="40" Margin="65,12,0,0">
+						<TextBlock Foreground="white" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+						Connect
+						</TextBlock>
+					</Button>
+				</StackPanel>
+			</Border>
+		</Grid>
+
+		<Grid Grid.Row="1" Name="feedback_panel" IsVisible="False" Grid.Column="2" Margin="-92,0,0,280" Width="250" Height="50" VerticalAlignment="Bottom" HorizontalAlignment="Left">
+			<Border  BorderBrush="#2b2b2d" Background="#2b2b2d" BorderThickness="2" Width="250" Height="150" CornerRadius="4">
+				<TextBlock Name="feedback_text" Foreground="white" FontSize="17" TextWrapping="Wrap">
+					
+				</TextBlock>
+			</Border>
+		</Grid>
+
+	</Grid>
+</Window>
