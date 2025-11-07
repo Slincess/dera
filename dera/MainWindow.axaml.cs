@@ -15,7 +15,6 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-
 using dera;
 
 namespace dera

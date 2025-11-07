@@ -3,7 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080" 
-        x:Class="simac.MainWindow"
+        x:Class="dera.MainWindow"
 		Background="#111113"
         Title="dera"
 		ExtendClientAreaToDecorationsHint="True"
@@ -38,7 +38,7 @@
 			Margin="0,0,0,-2"
 			IsVisible="True"
 			>
-			<Grid Margin="0,10,-2,0" HorizontalAlignment="Stretch" ColumnDefinitions="auto, *, auto">
+			<Grid Margin="0,0,-2,0" HorizontalAlignment="Stretch" ColumnDefinitions="auto, *, auto">
 				<!--channel panel-->
 				
 				<Grid Grid.Column="0" Background="#141519" Width="180" Margin="0,0,0,0">
@@ -95,7 +95,7 @@
 							Height="45"
 							VerticalAlignment="Bottom"
 							HorizontalAlignment="Stretch"
-							Margin="0,0,0,15"
+							Margin="10,0,10,15"
 							Grid.Row="0"
 							>
 						<Grid ColumnDefinitions="auto,*" HorizontalAlignment="Stretch" VerticalAlignment="Center">
@@ -106,9 +106,10 @@
 								Foreground="white"
 								Background="#2b2b2d"
 								VerticalAlignment="Center"
-								
+								SelectionBrush="#2b2b2d"
+								BorderThickness="0"
 								/>
-					<Button Grid.Column="0" Width="40" Height="40" Background="#2b2b2d" HorizontalAlignment="Right">
+					<Button Grid.Column="0" BorderThickness="0" BorderBrush="#2b2b2d"  Width="40" Height="40" Background="#2b2b2d" HorizontalAlignment="Right">
 						<TextBlock Foreground="white" FontSize="25" HorizontalAlignment="Center" VerticalAlignment="Center">
 						+
 						</TextBlock>

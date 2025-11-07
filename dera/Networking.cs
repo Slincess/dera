@@ -176,7 +176,7 @@ namespace dera
                             foreach (var item in CurrentUsers.SV_CCU)
                             {
 
-                                serverbtn.CCUListAdd(item.CL_Name);
+                                serverbtn.CCUAdd(item.CL_Name);
                             }
                         }
                     }

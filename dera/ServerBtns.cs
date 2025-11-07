@@ -24,14 +24,15 @@ namespace dera
         public string? selected_image_name;
         public Button btn;
         public List<messages_cach> cached_messages = new();
-        public List<string> CCU_cache = new();
+        public List<string> cached_CCU = new();
         public void LoadServer()
         {
             LoadCCU();
             LoadChannels();
             LoadMessages();
         }
-        public void CCUListAdd(string name)
+
+        private void CCUListAdd(string name)
         {
 
             TextBlock UserNameLable = new();
@@ -45,7 +46,7 @@ namespace dera
             UserPanel.Background = new SolidColorBrush(Color.Parse("#404144"));
             UserPanel.Content = UserNameLable;
 
-           Dispatcher.UIThread.InvokeAsync(() => main.CCU_panel.Children.Insert(0,UserPanel));
+            Dispatcher.UIThread.InvokeAsync(() => main.CCU_panel.Children.Insert(0, UserPanel));
 
         }
 
@@ -57,6 +58,12 @@ namespace dera
             cached_messages.Add(m_cach);
         }
 
+        public void CCUAdd(string name)
+        {
+            string CCU = name;
+            cached_CCU.Add(CCU);
+        }
+
         public void ServerButtonClicked(object? sender, EventArgs e)
         {
             LoadServer();
@@ -65,9 +72,9 @@ namespace dera
         public void LoadCCU()
         {
             main.CCU_panel.Children.Clear();
-            foreach (var i in CCU_cache) 
+            foreach (var i in cached_CCU) 
             {
-                
+                CCUListAdd(i);
             }
         }
 
