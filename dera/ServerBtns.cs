@@ -12,7 +12,7 @@ namespace dera
         
         public struct messages_cach()
         {
-            public DataPacks message;
+            public DataPacks DataP;
             public string? imagePath;
         }
 
@@ -50,10 +50,38 @@ namespace dera
 
         }
 
+        private void MessageListAdd(messages_cach data)
+        {
+            TextBlock message = new();
+            message.Text = data.DataP.Sender + ": " + data. DataP.Message;
+            message.FontSize = 15;
+
+            if (message.Text.Contains("SERVER:"))
+            {
+                message.Foreground = new SolidColorBrush(Color.Parse("#6FA8A8"));
+            }
+            else
+            {
+                message.Foreground = new SolidColorBrush(Color.Parse("#FFFFFF"));
+            }
+            Dispatcher.UIThread.InvokeAsync(() => main.CCU_panel.Children.Insert(0, message));
+            if (data.imagePath != null) 
+            {
+                Image pictureBox = new()
+                {
+                    Width = 450,
+                    Height = 200,
+                    Source = new Bitmap(data.imagePath),
+                    Stretch = Stretch.Uniform
+                };
+                Dispatcher.UIThread.InvokeAsync(() => main.CCU_panel.Children.Insert(0, pictureBox));
+            }
+        }
+
         public void MessageAdd(DataPacks datapack, string? imagePath = null)
         {
             messages_cach m_cach = new();
-            m_cach.message = datapack;
+            m_cach.DataP = datapack;
             m_cach.imagePath = imagePath;
             cached_messages.Add(m_cach);
         }
@@ -85,7 +113,10 @@ namespace dera
 
         public void LoadMessages()
         {
-
+            foreach (var i in cached_messages)
+            {
+                MessageListAdd(i);
+            }
         }
         
     }
