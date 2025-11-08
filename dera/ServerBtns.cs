@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
@@ -25,8 +27,10 @@ namespace dera
         public Button btn;
         public List<messages_cach> cached_messages = new();
         public List<string> cached_CCU = new();
+        public bool IsOpened = false;
         public void LoadServer()
         {
+            main.currentUsedNetwork = networking;
             LoadCCU();
             LoadChannels();
             LoadMessages();
@@ -64,7 +68,7 @@ namespace dera
             {
                 message.Foreground = new SolidColorBrush(Color.Parse("#FFFFFF"));
             }
-            Dispatcher.UIThread.InvokeAsync(() => main.CCU_panel.Children.Insert(0, message));
+            Dispatcher.UIThread.InvokeAsync(() => main.messages_panel.Children.Insert(0, message));
             if (data.imagePath != null) 
             {
                 Image pictureBox = new()
@@ -74,7 +78,7 @@ namespace dera
                     Source = new Bitmap(data.imagePath),
                     Stretch = Stretch.Uniform
                 };
-                Dispatcher.UIThread.InvokeAsync(() => main.CCU_panel.Children.Insert(0, pictureBox));
+                Dispatcher.UIThread.InvokeAsync(() => main.messages_panel.Children.Insert(0, pictureBox));
             }
         }
 
@@ -84,12 +88,24 @@ namespace dera
             m_cach.DataP = datapack;
             m_cach.imagePath = imagePath;
             cached_messages.Add(m_cach);
+
+            Debug.WriteLine("a");
+
+            if (IsOpened)
+            {
+                MessageListAdd(m_cach);
+            }
         }
 
         public void CCUAdd(string name)
         {
             string CCU = name;
             cached_CCU.Add(CCU);
+            if (IsOpened)
+            {
+                CCUListAdd(name);
+                
+            }
         }
 
         public void ServerButtonClicked(object? sender, EventArgs e)
@@ -113,6 +129,7 @@ namespace dera
 
         public void LoadMessages()
         {
+            main.messages_panel.Children.Clear();
             foreach (var i in cached_messages)
             {
                 MessageListAdd(i);

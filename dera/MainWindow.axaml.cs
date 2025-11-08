@@ -31,6 +31,15 @@ namespace dera
             server_add_button.Click += AddServer_Click;
             profile_edit_button.Click += ProfileEdit_Click;
             profile_save_button.Click += ProfileNameSave;
+            message_text_box.KeyDown += Message_text_box_KeyDown;
+        }
+
+        private void Message_text_box_KeyDown(object? sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                currentUsedNetwork.SendMessage(message_text_box.Text);
+            }
         }
 
         List<Networking> networks = new();
@@ -39,7 +48,7 @@ namespace dera
         public List<ServerBtns> Servers = new();
         private List<UnConnectedServer> UnConnectedServers = new();
         public UserInfo Info = new();
-
+        public ServerBtns UsedServerBtn;
         /*
         private void textBox1_Enter(object sender, System.Windows.Forms.KeyEventArgs e)
         {
@@ -210,7 +219,7 @@ namespace dera
                         bool success = await serverbtn.networking.Connect(Server.IP, Server.Port);
                         if (success)
                         {
-                            btn.IsEnabled = true;
+                            Dispatcher.UIThread.Post(() => { btn.IsEnabled = true; });
                         }
                         else
                         {
@@ -221,12 +230,13 @@ namespace dera
                         }
 
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         UnConnectedServer newUCS = new UnConnectedServer();
                         newUCS.server = Server;
                         newUCS.btn = serverbtn;
                         UnConnectedServers.Add(newUCS);
+                        Debug.WriteLine(ex);
                     }
                 });
             }
@@ -327,7 +337,7 @@ namespace dera
 
         private void ProfileNameSave(object? sender, Avalonia.Interactivity.RoutedEventArgs e) //
         {
-            if (!string.IsNullOrEmpty(name_text_box.Text)) Info.LastName = name_text_box.Text; SaveInfo(Info); 
+            if (!string.IsNullOrEmpty(name_text_box.Text)) Info.LastName = name_text_box.Text; SaveInfo(Info);
             profile_edit_panel.IsVisible = !profile_edit_panel.IsVisible;
             server_adding_panel.IsVisible = false;
         }
@@ -381,6 +391,13 @@ namespace dera
                 Margin = new(0, 10, 0, 84)
             };
             file_panel.Children.Add(NewPreview);
+        }
+
+        public void SelectServerbtn(ServerBtns serverbtn)
+        {
+            if (UsedServerBtn != null) { serverbtn.IsOpened = false; }
+            serverbtn.IsOpened = true;
+            UsedServerBtn = serverbtn;
         }
     }
 }
