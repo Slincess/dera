@@ -62,16 +62,10 @@
 				<Grid Grid.Column="1" RowDefinitions="*,auto" Background="#191a1d" Margin="-3,0,0,0" >
 					<Border Grid.Row="0"
 							BorderBrush="#2b2b2d" BorderThickness="2" HorizontalAlignment="Stretch"
-							VerticalAlignment="Stretch" CornerRadius="1">
-						<ScrollViewer>
+							VerticalAlignment="Stretch" CornerRadius="1" Margin="0,0,0,0">
+						<ScrollViewer Name="message_scroll_veiw" Margin="0,0,0,60">
 							<StackPanel Name="messages_panel"
 							Orientation="Vertical">
-								<TextBlock FontSize="15" Foreground="#6FA8A8">hello my name is sigma</TextBlock>
-								<Image
-								 Height="200"
-								 Width= "450"
-								 Stretch="Uniform"
-								></Image>
 							</StackPanel>
 						</ScrollViewer>
 					</Border>
@@ -109,7 +103,7 @@
 								SelectionBrush="#2b2b2d"
 								BorderThickness="0"
 								/>
-					<Button Grid.Column="0" BorderThickness="0" BorderBrush="#2b2b2d"  Width="40" Height="40" Background="#2b2b2d" HorizontalAlignment="Right">
+					<Button Name="file_import_button" Grid.Column="0" BorderThickness="0" BorderBrush="#2b2b2d"  Width="40" Height="40" Background="#2b2b2d" HorizontalAlignment="Right">
 						<TextBlock Foreground="white" FontSize="25" HorizontalAlignment="Center" VerticalAlignment="Center">
 						+
 						</TextBlock>

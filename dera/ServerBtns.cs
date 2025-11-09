@@ -73,7 +73,7 @@ namespace dera
                     {
                         message.Foreground = new SolidColorBrush(Color.Parse("#FFFFFF"));
                     }
-                    Dispatcher.UIThread.InvokeAsync(() => main.messages_panel.Children.Insert(0, message));
+                    Dispatcher.UIThread.InvokeAsync(() => main.messages_panel.Children.Insert(main.messages_panel.Children.Count, message));
                     if (data.imagePath != null)
                     {
                         Image pictureBox = new()
@@ -83,8 +83,10 @@ namespace dera
                             Source = new Bitmap(data.imagePath),
                             Stretch = Stretch.Uniform
                         };
-                        Dispatcher.UIThread.InvokeAsync(() => main.messages_panel.Children.Insert(0, pictureBox));
+                        Dispatcher.UIThread.InvokeAsync(() => main.messages_panel.Children.Insert(main.messages_panel.Children.Count, pictureBox));
+                        main.message_scroll_veiw.ScrollToEnd();
                     }
+                    main.message_scroll_veiw.ScrollToEnd();
                 });
             }
             catch (Exception ex) 

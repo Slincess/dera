@@ -141,7 +141,7 @@ namespace dera
                                 {
                                     try
                                     {
-                                        string picturePath = await GetPicture(item.Picture, Path.Combine(@"D:\\wa\", item.Picture + ".png")); // returns path on disk
+                                        string picturePath = await GetPicture(item.Picture, Path.Combine(Main.Info.fileSavedPath, item.Picture + ".png")); // returns path on disk
                                         Debug.WriteLine("there is pictures");
                                         serverbtn.MessageAdd(item,picturePath);
                                     }
@@ -193,7 +193,7 @@ namespace dera
                             if (response_DataPacks.Picture == null || string.IsNullOrEmpty(response_DataPacks.Picture)) { await serverbtn.MessageAdd(response_DataPacks); }
                             else
                             {
-                                string picturePath = await GetPicture(response_DataPacks.Picture, Path.Combine(@"D:\\wa\", response_DataPacks.Picture + ".png")); // returns path on disk
+                                string picturePath = await GetPicture(response_DataPacks.Picture, Path.Combine(Main.Info.fileSavedPath, response_DataPacks.Picture + ".png")); // returns path on disk
                                 Debug.WriteLine("there is pictures");
                                await serverbtn.MessageAdd(response_DataPacks,picturePath);
                             }
@@ -210,7 +210,6 @@ namespace dera
                 DataPacks data = new();
                 data.Sender = Main.Info.LastName;
                 data.Message = Message;
-
 
                 if (Main.currentUsedNetwork.serverbtn.selected_image != null)
                 {
@@ -235,7 +234,8 @@ namespace dera
                 {
                     message = Encoding.UTF8.GetBytes(dataJson);
                     stream.Write(message, 0, message.Length);
-                    Debug.WriteLine(Main.currentUsedNetwork.serverbtn.selected_image);
+                    Main.currentUsedNetwork.serverbtn.selected_image = null;
+                    Main.currentUsedNetwork.serverbtn.selected_image_name = null;
                 }
                 catch (Exception e)
                 {

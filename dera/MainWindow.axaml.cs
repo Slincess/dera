@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Security;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Timers;
@@ -16,7 +17,11 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using dera;
-
+using SixLabors.ImageSharp;
+using SkiaSharp;
+using Image = Avalonia.Controls.Image;
+using Color = Avalonia.Media.Color;
+using Avalonia.Media.TextFormatting.Unicode;
 namespace dera
 {
     public partial class MainWindow : Window
@@ -32,13 +37,20 @@ namespace dera
             profile_edit_button.Click += ProfileEdit_Click;
             profile_save_button.Click += ProfileNameSave;
             message_text_box.KeyDown += Message_text_box_KeyDown;
+            file_import_button.Click += FIleImportButtonClicked;
+        }
+
+        private void FIleImportButtonClicked(object? sender, RoutedEventArgs e)
+        {
+            ImageSelectBrn_Click();
         }
 
         private void Message_text_box_KeyDown(object? sender, KeyEventArgs e)
         {
-            if (e.Key == Key.Enter)
+            if (e.Key == Key.Enter && !string.IsNullOrEmpty(message_text_box.Text))
             {
                 currentUsedNetwork.SendMessage(message_text_box.Text);
+                message_text_box.Text = "";
             }
         }
 
@@ -59,44 +71,49 @@ namespace dera
         private void LoadInfo()
         {
             string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\simac";
-            if (Directory.Exists(AppDataPath) && Path.Exists(Path.Combine(AppDataPath, "SimacJson.json")))
+            if (Directory.Exists(AppDataPath) && Path.Exists(Path.Combine(AppDataPath, "dera.json")))
             {
                 HandleServers();
             }
             else
             {
                 string newJson = JsonSerializer.Serialize(Info);
-                if (!Path.Exists(Path.Combine(AppDataPath, "SimacJson.json")))
+                if (!Path.Exists(Path.Combine(AppDataPath, "dera.json")))
                     Directory.CreateDirectory(AppDataPath);
 
-                File.WriteAllText(@$"{AppDataPath}\SimacJson.json", newJson);
+                File.WriteAllText(@$"{AppDataPath}\dera.json", newJson);
+            }
+
+            if (!Directory.Exists(Info.fileSavedPath))
+            {
+                Directory.CreateDirectory(Info.fileSavedPath);
             }
         }//
 
         private void SaveInfo(UserInfo info)
         {
             string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\simac";
-            if (Directory.Exists(AppDataPath) && Path.Exists(Path.Combine(AppDataPath, "SimacJson.json")))
+            if (Directory.Exists(AppDataPath) && Path.Exists(Path.Combine(AppDataPath, "dera.json")))
             {
                 string infojson = JsonSerializer.Serialize(info);
 
-                File.WriteAllText(Path.Combine(AppDataPath, "SimacJson.json"), infojson);
+                File.WriteAllText(Path.Combine(AppDataPath, "dera.json"), infojson);
             }
             else
             {
                 UserInfo infoNew = new();
                 string newJson = JsonSerializer.Serialize(infoNew);
-                if (!Path.Exists(Path.Combine(AppDataPath, "SimacJson.json")))
+                if (!Path.Exists(Path.Combine(AppDataPath, "dera.json")))
                     Directory.CreateDirectory(AppDataPath);
 
-                File.WriteAllText(@$"{AppDataPath}\SimacJson.json", newJson);
+                File.WriteAllText(@$"{AppDataPath}\dera.json", newJson);
             }
         }//
 
         private void HandleServers()
         {
             string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\simac";
-            string json = File.ReadAllText(Path.Combine(AppDataPath, "SimacJson.json"));
+            string json = File.ReadAllText(Path.Combine(AppDataPath, "dera.json"));
             try
             {
                 Info = JsonSerializer.Deserialize<UserInfo>(json) ?? new UserInfo();
@@ -335,48 +352,91 @@ namespace dera
             feedback_panel.IsVisible = !feedback_panel.IsVisible;
         } //
 
-        private async void ImageSelectBrn_Click(object sender, EventArgs e)
+        private async void ImageSelectBrn_Click()
         {
-            var dialog = new FilePickerOpenOptions
+            try
             {
-                Title = "Select a file",
-                AllowMultiple = false
-            };
+                var dialog = new FilePickerOpenOptions
+                {
+                    Title = "Select a file",
+                    AllowMultiple = false
+                };
 
-            var files = await this.StorageProvider.OpenFilePickerAsync(dialog);
+                var files = await this.StorageProvider.OpenFilePickerAsync(dialog);
 
-            if (files.Count == 0)
-                return;
+                if (files.Count == 0)
+                    return;
 
-            var file = files[0];
-            var fileName = file.Path.LocalPath;
+                var file = files[0];
+                var fileName = file.Path.LocalPath;
 
-            // --- Equivalent logic ---
-            if (!file_panel.IsVisible)
-                file_panel.IsVisible = true;
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
 
-            currentUsedNetwork.serverbtn.selected_image_name = fileName;
+                    if (!file_panel.IsVisible)
+                        file_panel.IsVisible = true;
+                });
 
-            CreatePicturePreview(fileName);
+                currentUsedNetwork.serverbtn.selected_image_name = fileName;
+
+                CreatePicturePreview(fileName);
+            }
+            catch (Exception ex) 
+            {
+                Debug.Write(ex);
+            }
         }
 
         private void CreatePicturePreview(string Picture)
         {
-            Image NewPreview = new()
+            try
             {
-                Source = new Bitmap(Picture),
-                Width = 220,
-                Margin = new(0, 10, 0, 84)
-            };
-            file_panel.Children.Add(NewPreview);
+                Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    Image NewPreview = new();
+                    try
+                    {
+                        NewPreview.Width = 220;
+                        NewPreview.Margin = new(0, 10, 0, 84);
+                        file_panel.Children.Add(NewPreview);
+                        NewPreview.Source = new Bitmap(Picture);
+                    }
+                    catch (DirectoryNotFoundException ex)
+                    {
+
+                        Debug.WriteLine(ex);
+                    }
+                });
+
+
+                using var ms = new MemoryStream();
+
+                using (var image = SixLabors.ImageSharp.Image.Load(currentUsedNetwork.serverbtn.selected_image_name))
+                {
+                    image.SaveAsPng(ms, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                    currentUsedNetwork.serverbtn.selected_image = ms.ToArray();
+                    ms.Position = 0;
+                }
+            }
+            catch (Exception ex) 
+            {
+                Debug.WriteLine(ex);
+            }
         }
 
         public void SelectServerbtn(ServerBtns serverbtn)
         {
-            if (UsedServerBtn != null) { serverbtn.IsOpened = false; }
-            serverbtn.IsOpened = true;
-            UsedServerBtn = serverbtn;
-            currentUsedNetwork = UsedServerBtn.networking;
+            try
+            {
+                if (UsedServerBtn != null) { serverbtn.IsOpened = false; }
+                serverbtn.IsOpened = true;
+                UsedServerBtn = serverbtn;
+                currentUsedNetwork = UsedServerBtn.networking;
+            }
+            catch (Exception ex) 
+            {
+                Debug.WriteLine(ex);
+            }
         }
     }
 }

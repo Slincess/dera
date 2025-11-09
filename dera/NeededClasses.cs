@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -22,6 +23,7 @@ namespace dera
     {
         public List<Server> ServerIPs { get; set; } = new();
         public string LastName { get; set; } = "anonym";
+        public string fileSavedPath { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\simac\files";
     }
 
     public class Server
