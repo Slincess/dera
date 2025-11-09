@@ -49,31 +49,9 @@ namespace dera
         private List<UnConnectedServer> UnConnectedServers = new();
         public UserInfo Info = new();
         public ServerBtns UsedServerBtn;
-        /*
-        private void textBox1_Enter(object sender, System.Windows.Forms.KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                currentUsedNetwork.SendMessage(textBox1.Text);
-                textBox1.Text = "";
-                if (currentUsedNetwork.serverbtn.file_panel.Controls.Count != 0)
-                {
-                    currentUsedNetwork.serverbtn.message_list.Location = new System.Drawing.Point
-                    {
-                        Y = currentUsedNetwork.serverbtn.message_list.Location.Y + currentUsedNetwork.serverbtn.file_panel.Size.Height,
-                        X = currentUsedNetwork.serverbtn.message_list.Location.X
-                    };
-                    currentUsedNetwork.serverbtn.file_panel.Controls.Clear();
-                    currentUsedNetwork.serverbtn.selected_image = null;
-                }
-            }
-        }
-            */
-
 
         private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
         {
-            // Nur bewegen, wenn die linke Maustaste gedrückt ist
             if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
                 BeginMoveDrag(e);
         }
@@ -83,7 +61,7 @@ namespace dera
             string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\simac";
             if (Directory.Exists(AppDataPath) && Path.Exists(Path.Combine(AppDataPath, "SimacJson.json")))
             {
-                //HandleServers();
+                HandleServers();
             }
             else
             {
@@ -301,7 +279,7 @@ namespace dera
 
         private void ConnectFeedback(string Feedback)
         {
-            feedback_text.Text = Feedback;
+           Dispatcher.UIThread.InvokeAsync(() => feedback_text.Text = Feedback);
         }//
 
         private bool CheckAlreadyJoined(string ip, string portString)
@@ -398,6 +376,7 @@ namespace dera
             if (UsedServerBtn != null) { serverbtn.IsOpened = false; }
             serverbtn.IsOpened = true;
             UsedServerBtn = serverbtn;
+            currentUsedNetwork = UsedServerBtn.networking;
         }
     }
 }

@@ -169,14 +169,14 @@ namespace dera
                             serverbtn.CCU_panel.Invoke(() => serverbtn.CCU_panel.Controls.Clear());
                         }
                         */
-                        Main.CCU_panel.Children.Clear();
+                        Dispatcher.UIThread.InvokeAsync(() => Main.CCU_panel.Children.Clear());
                         Users CurrentUsers = JsonSerializer.Deserialize<Users>(response_string);
                         if (CurrentUsers.SV_CCU != null)
                         {
                             foreach (var item in CurrentUsers.SV_CCU)
                             {
 
-                                serverbtn.CCUAdd(item.CL_Name);
+                               await serverbtn.CCUAdd(item.CL_Name);
                             }
                         }
                     }
@@ -190,15 +190,13 @@ namespace dera
                         }
                         else
                         {
-                           
-                            if(response_DataPacks.Picture != null) { serverbtn.MessageAdd(response_DataPacks); }
+                            if (response_DataPacks.Picture == null || string.IsNullOrEmpty(response_DataPacks.Picture)) { await serverbtn.MessageAdd(response_DataPacks); }
                             else
                             {
                                 string picturePath = await GetPicture(response_DataPacks.Picture, Path.Combine(@"D:\\wa\", response_DataPacks.Picture + ".png")); // returns path on disk
                                 Debug.WriteLine("there is pictures");
-                                serverbtn.MessageAdd(response_DataPacks,picturePath);
+                               await serverbtn.MessageAdd(response_DataPacks,picturePath);
                             }
-
                         }
                     }
                 }

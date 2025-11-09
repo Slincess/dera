@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
@@ -30,13 +31,13 @@ namespace dera
         public bool IsOpened = false;
         public void LoadServer()
         {
-            main.currentUsedNetwork = networking;
+            main.SelectServerbtn(this);
             LoadCCU();
             LoadChannels();
             LoadMessages();
         }
 
-        private void CCUListAdd(string name)
+        private async Task CCUListAdd(string name)
         {
 
             TextBlock UserNameLable = new();
@@ -50,60 +51,77 @@ namespace dera
             UserPanel.Background = new SolidColorBrush(Color.Parse("#404144"));
             UserPanel.Content = UserNameLable;
 
-            Dispatcher.UIThread.InvokeAsync(() => main.CCU_panel.Children.Insert(0, UserPanel));
+           await Dispatcher.UIThread.InvokeAsync(() => main.CCU_panel.Children.Insert(0, UserPanel));
 
         }
 
-        private void MessageListAdd(messages_cach data)
+        private async Task MessageListAdd(messages_cach data)
         {
-            TextBlock message = new();
-            message.Text = data.DataP.Sender + ": " + data. DataP.Message;
-            message.FontSize = 15;
-
-            if (message.Text.Contains("SERVER:"))
+            try
             {
-                message.Foreground = new SolidColorBrush(Color.Parse("#6FA8A8"));
-            }
-            else
-            {
-                message.Foreground = new SolidColorBrush(Color.Parse("#FFFFFF"));
-            }
-            Dispatcher.UIThread.InvokeAsync(() => main.messages_panel.Children.Insert(0, message));
-            if (data.imagePath != null) 
-            {
-                Image pictureBox = new()
+                await Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    Width = 450,
-                    Height = 200,
-                    Source = new Bitmap(data.imagePath),
-                    Stretch = Stretch.Uniform
-                };
-                Dispatcher.UIThread.InvokeAsync(() => main.messages_panel.Children.Insert(0, pictureBox));
+                    TextBlock message = new();
+                    message.Text = data.DataP.Sender + ": " + data.DataP.Message;
+                    message.FontSize = 15;
+
+                    if (message.Text.Contains("SERVER:"))
+                    {
+                        message.Foreground = new SolidColorBrush(Color.Parse("#6FA8A8"));
+                    }
+                    else
+                    {
+                        message.Foreground = new SolidColorBrush(Color.Parse("#FFFFFF"));
+                    }
+                    Dispatcher.UIThread.InvokeAsync(() => main.messages_panel.Children.Insert(0, message));
+                    if (data.imagePath != null)
+                    {
+                        Image pictureBox = new()
+                        {
+                            Width = 450,
+                            Height = 200,
+                            Source = new Bitmap(data.imagePath),
+                            Stretch = Stretch.Uniform
+                        };
+                        Dispatcher.UIThread.InvokeAsync(() => main.messages_panel.Children.Insert(0, pictureBox));
+                    }
+                });
             }
-        }
-
-        public void MessageAdd(DataPacks datapack, string? imagePath = null)
-        {
-            messages_cach m_cach = new();
-            m_cach.DataP = datapack;
-            m_cach.imagePath = imagePath;
-            cached_messages.Add(m_cach);
-
-            Debug.WriteLine("a");
-
-            if (IsOpened)
+            catch (Exception ex) 
             {
-                MessageListAdd(m_cach);
+                Debug.WriteLine(ex);
             }
         }
 
-        public void CCUAdd(string name)
+        public async Task MessageAdd(DataPacks datapack, string? imagePath = null)
+        {
+            try
+            {
+                messages_cach m_cach = new();
+                m_cach.DataP = datapack;
+                m_cach.imagePath = imagePath;
+                cached_messages.Add(m_cach);
+
+
+                if (IsOpened)
+                {
+                    await MessageListAdd(m_cach);
+                    Debug.WriteLine("a");
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+            }
+        }
+
+        public async Task CCUAdd(string name)
         {
             string CCU = name;
             cached_CCU.Add(CCU);
             if (IsOpened)
             {
-                CCUListAdd(name);
+               await CCUListAdd(name);
                 
             }
         }
@@ -113,12 +131,12 @@ namespace dera
             LoadServer();
         }
 
-        public void LoadCCU()
+        public async Task LoadCCU()
         {
-            main.CCU_panel.Children.Clear();
+           await Dispatcher.UIThread.InvokeAsync(() => main.CCU_panel.Children.Clear());
             foreach (var i in cached_CCU) 
             {
-                CCUListAdd(i);
+               await CCUListAdd(i);
             }
         }
 
@@ -127,12 +145,12 @@ namespace dera
 
         }
 
-        public void LoadMessages()
+        public async Task LoadMessages()
         {
-            main.messages_panel.Children.Clear();
+          await Dispatcher.UIThread.InvokeAsync(() => main.messages_panel.Children.Clear());
             foreach (var i in cached_messages)
             {
-                MessageListAdd(i);
+               await MessageListAdd(i);
             }
         }
         
