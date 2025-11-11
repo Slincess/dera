@@ -39,6 +39,9 @@ namespace dera
         private static readonly HttpClient client_http = new HttpClient();
 
         private Server ThisServer = new();
+
+        public string fileUploadIP;
+
         public async Task<bool> Connect(string ip, int port)
         {
             try
@@ -252,7 +255,7 @@ namespace dera
                 var png_content = new ByteArrayContent(Main.currentUsedNetwork.serverbtn.selected_image);
                 png_content.Headers.ContentType = MediaTypeHeaderValue.Parse("image/png");
                 form.Add(png_content, "png", Main.currentUsedNetwork.serverbtn.selected_image_name);
-                var response = await client_http.PostAsync("http://192.168.178.20:5001/api/UploadImage", form);
+                var response = await client_http.PostAsync($"http://{fileUploadIP}/api/UploadImage", form);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -276,7 +279,7 @@ namespace dera
 
             try
             {
-                var response = await client_http.PostAsync("http://192.168.178.20:5001/api/GetImage", form);
+                var response = await client_http.PostAsync($"http://{fileUploadIP}/api/GetImage", form);
                 try
                 {
                     if (response.IsSuccessStatusCode)

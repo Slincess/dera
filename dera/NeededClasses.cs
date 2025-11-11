@@ -58,6 +58,7 @@ namespace dera
     public class SV_Messages
     {
         public List<DataPacks> SV_allMessages { get; set; }
+        public string filesendingIP { get; set; }   
     }
 
 }

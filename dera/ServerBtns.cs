@@ -94,7 +94,6 @@ namespace dera
                 Debug.WriteLine(ex);
             }
         }
-
         public async Task MessageAdd(DataPacks datapack, string? imagePath = null)
         {
             try
