@@ -33,7 +33,7 @@ namespace dera
         public Task response;
 
         public bool IsClientConnected = false;
-        private int messagesCount = 0;
+        private bool MassegesLoaded = false;
 
         public ServerBtns serverbtn;
         private static readonly HttpClient client_http = new HttpClient();
@@ -126,80 +126,27 @@ namespace dera
                     client = null;
                     break;
                 }
-                if (messagesCount == 0)
+                if (MassegesLoaded == false)
                 {
-                    messagesCount++;
+                    MassegesLoaded = true;
                     SV_Messages Sv_messages = JsonSerializer.Deserialize<SV_Messages>(response_string);
                     Debug.Write(response);
-                    try
+                    if (!await LoadServerMessages(Sv_messages))
                     {
-                        if (Sv_messages.SV_allMessages != null)
-                        {
-                            foreach (var item in Sv_messages.SV_allMessages)
-                            {
-                                Debug.WriteLine(item.Message);
-
-                                if (item.Picture == null) { serverbtn.MessageAdd(item); }
-                                else
-                                {
-                                    try
-                                    {
-                                        string picturePath = await GetPicture(item.Picture, Path.Combine(Main.Info.fileSavedPath, item.Picture + ".png")); // returns path on disk
-                                        Debug.WriteLine("there is pictures");
-                                        serverbtn.MessageAdd(item,picturePath);
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Debug.WriteLine(e);
-                                    }
-                                }
-
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Debug.Write(e);
+                        //add failed screen.
                     }
                 }
                 else
                 {
                     if (response_string.Contains("SV_CCU"))
                     {
-                        /*
-                        if (serverbtn.CCU_panel.InvokeRequired)
-                        {
-                            serverbtn.CCU_panel.Invoke(() => serverbtn.CCU_panel.Controls.Clear());
-                        }
-                        */
-                        Dispatcher.UIThread.InvokeAsync(() => Main.CCU_panel.Children.Clear());
-                        Users CurrentUsers = JsonSerializer.Deserialize<Users>(response_string);
-                        if (CurrentUsers.SV_CCU != null)
-                        {
-                            foreach (var item in CurrentUsers.SV_CCU)
-                            {
-
-                               await serverbtn.CCUAdd(item.CL_Name);
-                            }
-                        }
+                        await HandleNewCCU(response_string);
                     }
                     if (response_string.Contains("Message"))
                     {
-                        Debug.WriteLine(response_string);
-                        DataPacks response_DataPacks = JsonSerializer.Deserialize<DataPacks>(response_string);
-                        if (response_DataPacks.Message == "__KICK__" && response_DataPacks.Sender == "__SERVER__")
+                        if (!await HandleNewMessage(response_string))
                         {
-                            disconnect();
-                        }
-                        else
-                        {
-                            if (response_DataPacks.Picture == null || string.IsNullOrEmpty(response_DataPacks.Picture)) { await serverbtn.MessageAdd(response_DataPacks); }
-                            else
-                            {
-                                string picturePath = await GetPicture(response_DataPacks.Picture, Path.Combine(Main.Info.fileSavedPath, response_DataPacks.Picture + ".png")); // returns path on disk
-                                Debug.WriteLine("there is pictures");
-                               await serverbtn.MessageAdd(response_DataPacks,picturePath);
-                            }
+                            //Add notification to user
                         }
                     }
                 }
@@ -304,6 +251,93 @@ namespace dera
                 Debug.WriteLine(e + " there is problem with response");
             }
             return savePath;
+        }
+
+        public async Task<bool> LoadServerMessages(SV_Messages Sv_messages)
+        {
+            try
+            {
+                if (Sv_messages.SV_allMessages != null)
+                {
+                    foreach (var item in Sv_messages.SV_allMessages)
+                    {
+                        Debug.WriteLine(item.Message);
+
+                        if (item.Picture == null) { serverbtn.MessageAdd(item); }
+                        else
+                        {
+                            try
+                            {
+                                string picturePath = await GetPicture(item.Picture, Path.Combine(Main.Info.fileSavedPath, item.Picture + ".png")); // returns path on disk
+                                serverbtn.MessageAdd(item, picturePath);
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.WriteLine(e);
+                                //add failed picture placeholder
+                            }
+                        }
+
+                    }
+                    return true;
+                }
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public async Task<bool> HandleNewCCU(string response_string)
+        {
+            try
+            {
+                Dispatcher.UIThread.InvokeAsync(() => Main.CCU_panel.Children.Clear());
+                Users CurrentUsers = JsonSerializer.Deserialize<Users>(response_string);
+                if (CurrentUsers.SV_CCU != null)
+                {
+                    foreach (var item in CurrentUsers.SV_CCU)
+                    {
+                        await serverbtn.CCUAdd(item.CL_Name);
+
+                    }
+                }
+            }
+            catch
+            {
+                //add failed placeholder
+                return false;
+            }
+            return true;
+        }
+
+        public async Task<bool> HandleNewMessage(string response_string)
+        {
+            try
+            {
+                Debug.WriteLine(response_string);
+                DataPacks response_DataPacks = JsonSerializer.Deserialize<DataPacks>(response_string);
+                if (response_DataPacks.Message == "__KICK__" && response_DataPacks.Sender == "__SERVER__")
+                {
+                    disconnect();
+                }
+                else
+                {
+                    if (response_DataPacks.Picture == null || string.IsNullOrEmpty(response_DataPacks.Picture)) { await serverbtn.MessageAdd(response_DataPacks); }
+                    else
+                    {
+                        string picturePath = await GetPicture(response_DataPacks.Picture, Path.Combine(Main.Info.fileSavedPath, response_DataPacks.Picture + ".png")); // returns path on disk
+                        Debug.WriteLine("there is pictures");
+                        await serverbtn.MessageAdd(response_DataPacks, picturePath);
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
